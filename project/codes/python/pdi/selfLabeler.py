@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import skimage.morphology as morph
+import shutil
 
 def getImages(path_images):
     try:
@@ -91,7 +92,20 @@ def connectedBorderDetectorYUV(imagen, numLabel, pathText):
 
 
 
+def copyImage(sourcePath, destinationPath):
+    try:
+        shutil.copy(sourcePath, destinationPath)
+        print(f"Imagen copiada exitosamente de {sourcePath} a {destinationPath}")
+    except Exception as e:
+        print(f"Error al copiar la imagen: {str(e)}")
 
 
-
-
+def comparateLenFolder(folder_path1, folder_path2):
+    try: 
+        files_folder1 = [f for f in os.listdir(folder_path1) if os.path.isfile(os.path.join(folder_path1, f))]
+        files_folder2 = [f for f in os.listdir(folder_path2) if os.path.isfile(os.path.join(folder_path2, f))]
+        return files_folder1 == files_folder2 
+    
+    except Exception as e:
+        print(f"Error al copiar la imagen: {str(e)}")
+        return False

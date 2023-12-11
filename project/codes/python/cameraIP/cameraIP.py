@@ -1,27 +1,52 @@
 import cv2
 import urllib.request
 import numpy as np
+import time
+import os
+from datetime import datetime
 
-#url = 'http://192.168.1.5/cam-hi.jpg'
-#url = 'http://192.168.1.5/cam-lo.jpg'
+def cameraIP(url, save_path, name_image, cap_interval=10, cap_duration=900):
+    win_name = 'CAM'
+    cv2.namedWindow(win_name, cv2.WINDOW_AUTOSIZE)
 
-def cameraIP(url):
-    winName = 'CAM'
-    cv2.namedWindow(winName, cv2.WINDOW_AUTOSIZE)
-    scale_percent = 80
-    while(1):
-        imgResponse = urllib.request.urlopen(url)
-        imgNp = np.array(bytearray(imgResponse.read()), dtype = np.uint8)
-        img = cv2.imdecode(imgNp, -1)
+    start_time = time.time()
+    end_time = start_time + (cap_duration / 1000.0)
 
+    # Crear el directorio de guardado si no existe
+    os.makedirs(save_path, exist_ok=True)
 
-        img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        #gris = cv2.imdecode(img, cv2.COLOR_BGR2GRAY)
+    while time.time() < end_time:
+        current_time = time.time()
 
-        cv2.imshow(winName, img)
+        if current_time - start_time >= cap_interval / 1000.0:
+            img_response = urllib.request.urlopen(url)
+            img_np = np.array(bytearray(img_response.read()), dtype=np.uint8)
+            img = cv2.imdecode(img_np, -1)
 
-        tecla = cv2.waitKey(5) & 0xFF
-        if tecla == 27:
+            img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+            cv2.imshow(win_name, img)
+
+            fecha_hora_actual = datetime.now()
+
+            # Formatear la fecha y hora como una cadena
+            formato_personalizado = "%Y-%m-%d_%H-%M-%S"
+            fecha_hora_formateada = fecha_hora_actual.strftime(formato_personalizado)
+
+            img_path = os.path.join(save_path, f"{name_image}_{fecha_hora_formateada}.jpg")
+
+            cv2.imwrite(img_path, img)
+            print(f"Foto tomada y guardada en {img_path}")
+
+            start_time = current_time
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == 27:
             break
 
     cv2.destroyAllWindows()
+
+
+
+
+

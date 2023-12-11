@@ -17,6 +17,14 @@ void ServoTools::initServos() {
   servo2.write(posStart2);
   servo3.write(posStart3);
   servo4.write(posStart4);
+  delay(500);
+}
+void ServoTools::initialPos(){
+  this->moveServo(1, this->posStart1);
+  this->moveServo(2, this->posStart2);
+  this->moveServo(3, this->posStart3);
+  this->moveServo(4, this->posStart4);
+  delay(500);
 }
 
 void ServoTools::moveServo(uint8_t numServo, uint8_t angle) {
@@ -94,51 +102,37 @@ bool ServoTools::valideRange(uint8_t numServo, uint8_t angle){
   return false;
 }
 
-void ServoTools::loopCapture(int num){
-  //posición 1
-  switch (numServo) {
-    case 1:
-      smoothServo(this->servo1, 105, this->currentPos1);
-      smoothServo(this->servo2, 165, this->currentPos2);
-      smoothServo(this->servo3,  85, this->currentPos3);
-      smoothServo(this->servo4,  15, this->currentPos4);
-      delay(500);
-      break;
-      
-    case 2:
-      smoothServo(this->servo1,  80, this->currentPos1);
-      smoothServo(this->servo2, 140, this->currentPos2);
-      smoothServo(this->servo3,  85, this->currentPos3);
-      smoothServo(this->servo4,  30, this->currentPos4);
-      delay(500);
-      break;
-
-    case 3:
-      smoothServo(this->servo1,  70, this->currentPos1);
-      smoothServo(this->servo2, 120, this->currentPos2);
-      smoothServo(this->servo3,  90, this->currentPos3);
-      smoothServo(this->servo4,  60, this->currentPos4);
-      delay(500);
-      break;
-
-    case 4
-      smoothServo(this->servo1,  60, this->currentPos1);
-      smoothServo(this->servo2,  90, this->currentPos2);
-      smoothServo(this->servo3,  85, this->currentPos3);
-      smoothServo(this->servo4,  90, this->currentPos4);
-      delay(500);
-      break;
-
-    default:
-      smoothServo(this->servo1, 105, this->currentPos1);
-      smoothServo(this->servo2, 165, this->currentPos2);
-      smoothServo(this->servo3,  85, this->currentPos3);
-      smoothServo(this->servo4,  15, this->currentPos4);
-      delay(500);
-      break;
-      
-
-  smoothServo(this->servo2, 120, this->currentPos2);
-  
+void ServoTools::loopCapture(int i){
+  if (i ==0){
+    smoothServo(this->servo1, 105, this->currentPos1);
+    smoothServo(this->servo2, 165, this->currentPos2);
+    smoothServo(this->servo3,  85, this->currentPos3);
+    smoothServo(this->servo4,  15, this->currentPos4);
+    delay(500);
+  }
+  if (i ==1){
+    smoothServo(this->servo1,  80, this->currentPos1);
+    smoothServo(this->servo2, 140, this->currentPos2);
+    smoothServo(this->servo3,  85, this->currentPos3);
+    smoothServo(this->servo4,  30, this->currentPos4);
+    delay(500);
+  }
+  if (i ==2){
+    smoothServo(this->servo1,  70, this->currentPos1);
+    smoothServo(this->servo2, 120, this->currentPos2);
+    smoothServo(this->servo3,  90, this->currentPos3);
+    smoothServo(this->servo4,  60, this->currentPos4);
+    delay(500);
+  }
+  if (i ==3){
+    smoothServo(this->servo1,  60, this->currentPos1);
+    smoothServo(this->servo2,  90, this->currentPos2);
+    smoothServo(this->servo3,  85, this->currentPos3);
+    smoothServo(this->servo4,  90, this->currentPos4);
+    delay(500);
+  }
+  if (i ==4){
+    smoothServo(this->servo2, 120, this->currentPos2);
+  }
 
 }

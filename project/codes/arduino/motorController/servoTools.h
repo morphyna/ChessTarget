@@ -9,10 +9,12 @@ public:
   ServoTools(uint8_t pinServo1 = 2, uint8_t pinServo2 = 3, uint8_t pinServo3 = 5, uint8_t pinServo4 = 6);  // Constructor
 
   void initServos();
+  void initialPos();
   void moveServo(uint8_t numServo, uint8_t angle);
   void smoothServo(Servo &servo, uint8_t desiredPos, uint8_t &currentPos);
   bool valideRange(uint8_t numServo, uint8_t angle);
-  void loopCapture();
+  void loopCapture(int i);
+  
 
 private:
   uint8_t pinServo1; 
