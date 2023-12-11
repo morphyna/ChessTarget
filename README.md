@@ -2,7 +2,7 @@
 
 ## Introducción
 
-El procesamiento de fichas de ajedrez con Python involucra el uso de herramientas y técnicas de visión por computadora y aprendizaje profundo para analizar y comprender imágenes de fichas de ajedrez. En tu caso específico, se han utilizado varias tecnologías y componentes:
+El procesamiento de fichas de ajedrez con Python involucra el uso de herramientas y técnicas de visión por computadora y aprendizaje profundo para analizar y comprender imágenes de fichas de ajedrez. Además, el uso de Arduino se vuelve indispensable a la hora de unir la cámara con los movimientos del brazo robótico, para este caso, se han utilizado varias tecnologías y componentes:
 
 - ESP32-CAM en un Brazo Robótico: La ESP32-CAM es una cámara con capacidad de conexión Wi-Fi basada en el chip ESP32. Se utiliza para capturar imágenes de las fichas de ajedrez.
 El brazo robótico impreso en 3D proporciona el movimiento necesario para posicionar la cámara en diferentes ubicaciones y ángulos para tomar fotos de las fichas desde diferentes perspectivas.
