@@ -48,7 +48,10 @@ En la carpeta "codes," se encuentran los códigos relacionados con los movimient
 - **En la carpeta 'arduino':**
   - **'esp32cam_controller':** Código para la ESP32-CAM, gestionando la conexión de la cámara y la captura de imágenes.
   - **'motor_controller':** Códigos para controlar los movimientos del brazo robótico.
+ - **'image_processing':** Programa para procesar imágenes capturadas, generando máscaras y rectángulos alrededor de las piezas detectadas.
+  - **'yolov5_training':** Programa para el entrenamiento de la red neuronal YoloV5.
 
+Con estos archivos, se logra el control de una cámara para capturar imágenes que son procesadas para reconocer piezas de ajedrez específicas.
 - **En la carpeta 'python':**
 - 
 # Chess Target - Procedimiento Detallado
@@ -87,6 +90,7 @@ En la carpeta "codes," se encuentran los códigos relacionados con los movimient
 
 1. **Instalación de Controladores USB para ESP32-CAM:**
    - Descarga e instala los controladores USB CP210x para la ESP32-CAM desde el sitio web del fabricante del chip.
+   - Si usas un convertidor USB a serial, verifica que tienes intalado el driver correspondiente.
 
    ![Instalación de Controladores USB para ESP32-CAM](URL_IMAGEN_ESP32CAM_4)
 
@@ -171,13 +175,57 @@ En la carpeta "codes," se encuentran los códigos relacionados con los movimient
    - Implementa las funciones en Flask para recibir datos de la ESP32-CAM, controlar el brazo robótico y mostrar los resultados del procesamiento de imágenes.
 
    ```python
-   # Implementa las funciones de comunicación aquí
+   import requests
+import time
+
+#url = http://192.168.1.5/status
+# new_mode toma un valor entre 0 y 2
+# 0 : esperando orden
+# 1 : loop take some photos
+# 2 : object rocognition
+
+def handlerJson(url, new_mode):
+    mode = 0
+    state = 0
+    servos = [0,0,0,0]
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            status_json = response.json()
+
+            mode = status_json.get('mode', None)
+            state = status_json.get('state', None)
+            servos = status_json.get('servos', {})
+
+            print("Estado actual:")
+            print(f"Mode: {mode}")
+            print(f"State: {state}")
+            print("Servos:", list(servos.values()))
+
+            if state == 0:
+                status_json['mode'] = new_mode
+                response = requests.post(url, json=status_json)
+
+                if response.status_code == 200:
+                    print("Solicitud POST exitosa.")
+                else:
+                    print(f"Error en la solicitud POST. Código de estado: \
+                            {response.status_code}")
+                    
+            time.sleep(0.01)
+
+        else:
+            print(f"Error en la solicitud GET. Código de estado: \
+                {url}: {response.status_code}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        
+    return mode, state, servos
+
    ```
 
    - Actualiza las rutas y funciones según las necesidades del proyecto.
 
 Con estos pasos, has completado la configuración y conexión de los componentes principales en el proyecto Chess Target. Asegúrate de seguir cada sección detalladamente y personaliza las configuraciones según tus necesidades específicas. ¡Buena suerte con tu proyecto!
-  - **'image_processing':** Programa para procesar imágenes capturadas, generando máscaras y rectángulos alrededor de las piezas detectadas.
-  - **'yolov5_training':** Programa para el entrenamiento de la red neuronal YoloV5.
-
-Con estos archivos, se logra el control de una cámara para capturar imágenes que son procesadas para reconocer piezas de ajedrez específicas.
+ 
