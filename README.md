@@ -50,6 +50,133 @@ En la carpeta "codes," se encuentran los códigos relacionados con los movimient
   - **'motor_controller':** Códigos para controlar los movimientos del brazo robótico.
 
 - **En la carpeta 'python':**
+- 
+# Chess Target - Procedimiento Detallado
+
+## ESP32-CAM
+
+### Configuración Inicial
+
+1. **Conexión de ESP32-CAM:**
+   - Conecta la ESP32-CAM al Arduino Nano siguiendo el esquema de conexiones.
+
+   ![Esquema de Conexiones ESP32-CAM a Arduino Nano](URL_IMAGEN_ESP32CAM_1)
+
+2. **Configuración del Entorno de Desarrollo de Arduino para ESP32-CAM:**
+   - Abre el Arduino IDE y sigue los pasos mencionados anteriormente para configurar las preferencias y la tarjeta ESP32-CAM.
+   - Ajusta las configuraciones en el código, como el nombre y la contraseña de la red Wi-Fi, la dirección IP y el puerto del servidor.
+
+   ```cpp
+   const char *ssid = "nombre_de_la_red";
+   const char *password = "contraseña";
+   IPAddress local_IP(192, 168, 1, 100);
+   IPAddress gateway(192, 168, 1, 1);
+   IPAddress subnet(255, 255, 255, 0);
+   unsigned int localPort = 80;
+   ```
+
+   ![Configuración del Entorno de Desarrollo para ESP32-CAM](URL_IMAGEN_ESP32CAM_2)
+
+3. **Subir el Código a ESP32-CAM:**
+   - Conecta la ESP32-CAM a la computadora y selecciona el puerto COM correcto en "Herramientas" -> "Puerto".
+   - Sube el código a la ESP32-CAM.
+
+   ![Subir el Código a ESP32-CAM](URL_IMAGEN_ESP32CAM_3)
+
+### Drivers y Configuración
+
+1. **Instalación de Controladores USB para ESP32-CAM:**
+   - Descarga e instala los controladores USB CP210x para la ESP32-CAM desde el sitio web del fabricante del chip.
+
+   ![Instalación de Controladores USB para ESP32-CAM](URL_IMAGEN_ESP32CAM_4)
+
+2. **Verificación del Puerto COM:**
+   - Después de instalar los controladores, conecta la ESP32-CAM a la computadora y verifica que aparezca en el Administrador de Dispositivos como un puerto COM.
+
+   ![Verificación del Puerto COM para ESP32-CAM](URL_IMAGEN_ESP32CAM_5)
+
+## Arduino Nano
+
+### Configuración y Control del Brazo Robótico
+
+1. **Conexión de Servomotores al Arduino Nano:**
+   - Conecta los servomotores MG90 y SG90 al Arduino Nano según el esquema de conexiones.
+
+   ![Esquema de Conexiones de Servomotores a Arduino Nano](URL_IMAGEN_ARDUINO_NANO_1)
+
+2. **Configuración del Entorno de Desarrollo de Arduino para el Brazo Robótico:**
+   - Abre el código de control del brazo robótico en el Arduino IDE.
+   - Sube el código al Arduino Nano.
+
+   ![Configuración del Entorno de Desarrollo para el Brazo Robótico](URL_IMAGEN_ARDUINO_NANO_2)
+
+## YoloV5
+
+### Entrenamiento de la Red Neuronal
+
+1. **Preparación del Dataset:**
+   - Asegúrate de tener un conjunto de datos anotados con imágenes de fichas de ajedrez y sus etiquetas (ubicación y clase).
+   - Estructura el dataset según los requisitos de YoloV5.
+
+2. **Configuración del Entorno de Desarrollo para YoloV5:**
+   - Clona el repositorio oficial de YoloV5 desde [GitHub](https://github.com/ultralytics/yolov5).
+
+   ```bash
+   git clone https://github.com/ultralytics/yolov5.git
+   ```
+
+   - Instala las dependencias necesarias.
+
+   ```bash
+   pip install -U -r yolov5/requirements.txt
+   ```
+
+3. **Entrenamiento de la Red:**
+   - Ejecuta el script de entrenamiento, especificando la ubicación de tu conjunto de datos.
+
+   ```bash
+   python yolov5/train.py --img-size 640 --batch-size 16 --epochs 50 --data path/to/dataset.yaml --cfg yolov5/models/yolov5s.yaml --weights yolov5/models/yolov5s.pt
+   ```
+
+   - Ajusta los parámetros según tus necesidades y características del conjunto de datos.
+
+## Servidor Flask
+
+### Despliegue y Comunicación
+
+1. **Configuración del Entorno de Desarrollo para Flask:**
+   - Asegúrate de tener Flask instalado.
+
+   ```bash
+   pip install Flask
+   ```
+
+   - Crea una aplicación Flask y define las rutas y funciones necesarias.
+
+   ```python
+   from flask import Flask, render_template
+
+   app = Flask(__name__)
+
+   @app.route('/')
+   def index():
+       # Función para manejar la página principal
+       return render_template('index.html')
+
+   if __name__ == '__main__':
+       app.run(debug=True)
+   ```
+
+2. **Comunicación entre Componentes:**
+   - Implementa las funciones en Flask para recibir datos de la ESP32-CAM, controlar el brazo robótico y mostrar los resultados del procesamiento de imágenes.
+
+   ```python
+   # Implementa las funciones de comunicación aquí
+   ```
+
+   - Actualiza las rutas y funciones según las necesidades del proyecto.
+
+Con estos pasos, has completado la configuración y conexión de los componentes principales en el proyecto Chess Target. Asegúrate de seguir cada sección detalladamente y personaliza las configuraciones según tus necesidades específicas. ¡Buena suerte con tu proyecto!
   - **'image_processing':** Programa para procesar imágenes capturadas, generando máscaras y rectángulos alrededor de las piezas detectadas.
   - **'yolov5_training':** Programa para el entrenamiento de la red neuronal YoloV5.
 
