@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <esp32cam.h>
 #include <WebServer.h>
 #include <WiFi.h>
@@ -13,9 +14,15 @@ static auto hiRes = esp32cam::Resolution::find(800, 600);
 
 #define flashPin 4
 #define NUM_SERVOS 4
-int state = 0;
-int mode = 0;
-uint8_t servos[NUM_SERVOS] = {0, 0, 0, 0};
+
+struct Data {
+  int mode = 0;
+  int state = 0;
+  int posCapture = 0;
+  int servos[4] = {0, 0, 0, 0};
+};
+
+Data data;
 
 // Funciones declaradas
 void serveJpg();
@@ -26,8 +33,9 @@ void sendStatusJson();
 void receiveStatusJson();
 void flashIntensity(int i);
 void pulseFlash(int a, int b);
-int nanoResponse();
 void selectMode();
+void sendSerialData(const Data& data);
+void receiveSerialData(Data& data);
 
 void setup() {
   Serial.begin(115200);
@@ -65,79 +73,83 @@ void loop() {
   delay(10);
 }
 
-void serveJpg() {
-  auto frame = esp32cam::capture();
-
-  if (frame == nullptr) {
-    Serial.println("CAPTURE FAIL");
-    server.send(503, "", "");
-    return;
+void selectMode() {
+  sendSerialData(data);
+  receiveSerialData(data);
+  switch (data.mode) {
+    case 0:
+      data.posCapture = 0;
+      pulseFlash(20, 100);
+      break;
+    case 1: 
+      if (data.posCapture > 4){
+        data.posCapture = 0;
+      }
+      else{
+        data.posCapture++;
+      }
+      break;
+      case 2:
+        data.posCapture = 0;
+        pulseFlash(20, 50);
+        break;
+      case 3:
+        data.posCapture = 1;
+        break;
+    default:
+      flashIntensity(0);
+      break;
   }
-
-  flashIntensity(255);
-  Serial.printf("CAPTURE OK %dx%d %db\n", frame->getWidth(), frame->getHeight(),
-                static_cast<int>(frame->size()));
-
-  server.setContentLength(frame->size());
-  server.send(200, "image/jpeg");
-  WiFiClient client = server.client();
-  frame->writeTo(client);
-  delay(10);
-  flashIntensity(0);
+  
 }
 
-void handleJpgLo() {
-  if (!esp32cam::Camera.changeResolution(loRes)) {
-    Serial.println("SET-LO-RES FAIL");
-  }
-  serveJpg();
-}
-
-void handleJpgHi() {
-  if (!esp32cam::Camera.changeResolution(hiRes)) {
-    Serial.println("SET-HI-RES FAIL");
-  }
-  serveJpg();
-}
-
-void sendStatusJson() {
-  String jsonStr = server.arg("plain");
-
+void sendSerialData(const Data& data) {
   DynamicJsonDocument doc(256);
-  DeserializationError error = deserializeJson(doc, jsonStr);
-  Serial.println(jsonStr);
-  delay(500);
+  doc["mode"] = data.mode;
+  doc["state"] = data.state;
+  doc["posCapture"] = data.posCapture;
+  JsonArray servosArray = doc.createNestedArray("servos");
+  for (int i = 0; i < 4; i++) {
+    servosArray.add(data.servos[i]);
+  }
 
-  if (error) {
-    server.send(400, "text/plain", "Bad Request");
-  } else {
-    mode = doc["mode"];
-    state = doc["state"];
+  String jsonString;
+  serializeJson(doc, jsonString);
+  Serial.println(jsonString);
+}
 
-    JsonObject servosObj = doc["servos"];
-    servos[0] = servosObj["s1"];
-    servos[1] = servosObj["s2"];
-    servos[2] = servosObj["s3"];
-    servos[3] = servosObj["s4"];
+void receiveSerialData(Data& data) {
+  while (Serial.available()) {
+    String jsonString = Serial.readStringUntil('\n');
 
-    server.send(200, "text/plain", "OK");
+    DynamicJsonDocument doc(256);
+    DeserializationError error = deserializeJson(doc, jsonString);
+
+    if (!error) {
+      data.mode = doc["mode"];
+      data.state = doc["state"];
+      data.posCapture = doc["posCapture"];
+      JsonArray servosArray = doc["servos"];
+      for (int i = 0; i < 4; i++) {
+        data.servos[i] = servosArray[i];
+      }
+    }
   }
 }
 
-void receiveStatusJson() {
-  DynamicJsonDocument doc(256);
-  doc["mode"] = mode;
-  doc["state"] = state;
+void pulseFlash(int a, int b) {
+  for (int i = a; i <= b; i++) {
+    flashIntensity(i);
+    delay(10);
+  }
+  for (int i = b; i >= a; i--) {
+    flashIntensity(i);
+    delay(10);
+  }
+}
 
-  JsonObject servosObj = doc.createNestedObject("servos");
-  servosObj["s1"] = servos[0];
-  servosObj["s2"] = servos[1];
-  servosObj["s3"] = servos[2];
-  servosObj["s4"] = servos[3];
-
-  String jsonStr;
-  serializeJson(doc, jsonStr);
-  server.send(200, "application/json", jsonStr);
+void flashIntensity(int i) {
+  analogWrite(flashPin, i);
 }
 
 void startServer() {
@@ -169,48 +181,74 @@ void startServer() {
   server.begin();
 }
 
-void flashIntensity(int i) {
-  analogWrite(flashPin, i);
+void handleJpgLo() {
+  if (!esp32cam::Camera.changeResolution(loRes)) {
+    Serial.println("SET-LO-RES FAIL");
+  }
+  serveJpg();
 }
 
-void pulseFlash(int a, int b) {
-  for (int i = a; i <= b; i++) {
-    flashIntensity(i);
-    delay(10);
+void handleJpgHi() {
+  if (!esp32cam::Camera.changeResolution(hiRes)) {
+    Serial.println("SET-HI-RES FAIL");
   }
-  for (int i = b; i >= a; i--) {
-    flashIntensity(i);
-    delay(10);
+  serveJpg();
+}
+
+void serveJpg() {
+  auto frame = esp32cam::capture();
+
+  if (frame == nullptr) {
+    Serial.println("CAPTURE FAIL");
+    server.send(503, "", "");
+    return;
+  }
+  delay(1);
+  Serial.printf("CAPTURE OK %dx%d %db\n", frame->getWidth(), frame->getHeight(),
+                static_cast<int>(frame->size()));
+
+  server.setContentLength(frame->size());
+  server.send(200, "image/jpeg");
+  WiFiClient client = server.client();
+  frame->writeTo(client);
+}
+
+void sendStatusJson() {
+  String jsonStr = server.arg("plain");
+
+  DynamicJsonDocument doc(256);
+  DeserializationError error = deserializeJson(doc, jsonStr);
+
+  if (error) {
+    server.send(400, "text/plain", "Bad Request");
+  } else {
+    data.mode = doc["mode"];
+    data.state = doc["state"];
+    data.state = doc["posCapture"];
+
+    JsonObject servosObj = doc["servos"];
+    data.servos[0] = servosObj["s1"];
+    data.servos[1] = servosObj["s2"];
+    data.servos[2] = servosObj["s3"];
+    data.servos[3] = servosObj["s4"];
+
+    server.send(200, "text/plain", "OK");
   }
 }
 
-int nanoResponse() {
-  while (!Serial.available()) {
-    state = 1;
-    server.handleClient();
-    delay(100);
-  }
-  return 0;
-}
+void receiveStatusJson() {
+  DynamicJsonDocument doc(256);
+  doc["mode"] = data.mode;
+  doc["state"] = data.state;
+  data.state = doc["posCapture"];
 
-void selectMode() {
-  switch (mode) {
-    case 0:
-      Serial.println(mode+1);
-      pulseFlash(20, 100);
-      state = 0;
-      break;
-    case 1:
-      Serial.println(mode+1);
-      state = nanoResponse();
-      break;
-    case 2:
-      Serial.println(mode+1);
-      //pasar posiciones de los servos 
-      //para seguir el objeto.
-      state = nanoResponse();
-    default:
-      state = 0;
-      break;
-  }
+  JsonObject servosObj = doc.createNestedObject("servos");
+  servosObj["s1"] = data.servos[0];
+  servosObj["s2"] = data.servos[1];
+  servosObj["s3"] = data.servos[2];
+  servosObj["s4"] = data.servos[3];
+
+  String jsonStr;
+  serializeJson(doc, jsonStr);
+  server.send(200, "application/json", jsonStr);
 }

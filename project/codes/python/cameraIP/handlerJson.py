@@ -10,6 +10,7 @@ import time
 def handlerJson(url, new_mode):
     mode = 0
     state = 0
+    posCapture = 0
     servos = [0,0,0,0]
     try:
         response = requests.get(url)
@@ -18,11 +19,13 @@ def handlerJson(url, new_mode):
 
             mode = status_json.get('mode', None)
             state = status_json.get('state', None)
+            posCapture = status_json.get('posCapture', None)
             servos = status_json.get('servos', {})
 
             print("Estado actual:")
             print(f"Mode: {mode}")
             print(f"State: {state}")
+            print(f"posCapture: {posCapture}")            
             print("Servos:", list(servos.values()))
 
             if state == 0:
@@ -44,4 +47,4 @@ def handlerJson(url, new_mode):
     except Exception as e:
         print(f"Error: {e}")
         
-    return mode, state, servos
+    return mode, state, posCapture, servos

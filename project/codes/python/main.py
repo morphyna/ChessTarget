@@ -53,15 +53,15 @@ def main():
     while True:
         print(sms)
         selectMode = input("Ingrese el modo del robot: ")
-        mode, state, servos = handlerJson(urls['status'], selectMode)
+        mode, state, posCapture, servos = handlerJson(urls['status'], selectMode)
 
 
         if selectMode == '0':
             pass
         elif selectMode == '1':
             name_image = input("Ingrese el nombre de la pieza: ")
-            if state:
-                cameraIP(urls['resLo'], paths['autoData'], name_image, 10, 900)
+            cameraIP(urls['resLo'], paths['autoData'], name_image, 10, 900)
+
         elif selectMode == '2':
             if not comparateLenFolder(paths['images'], paths['autoData']):
                 pdi()

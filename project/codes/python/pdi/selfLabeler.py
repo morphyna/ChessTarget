@@ -68,7 +68,7 @@ def connectedBorderDetectorYUV(imagen, numLabel, pathText):
     with open(pathText, 'a') as txt_file:
         txt_file.write(textData)
 
-    """
+    
     plt.figure(figsize=(12, 4))
 
     plt.subplot(1, 3, 1)
@@ -87,7 +87,7 @@ def connectedBorderDetectorYUV(imagen, numLabel, pathText):
     plt.axis('off')
 
     plt.show()
-    """
+    
     
 
 
